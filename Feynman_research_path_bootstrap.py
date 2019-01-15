@@ -5,15 +5,19 @@ import time
 
 start = time.time()
 #set constants
+#N = 200
 N = 60
 #T = 30
-#a = T/N
+a = 0.5
+#a = 1.4
 m = 1 #mass is equal to 1
 omega = 1
 #h-bar is taken as 1 throughout
-paths = 40000 #number of paths to run
+paths = 1000 #number of paths to run
 keep = 4 #frequency at which paths are stored
+#keep = 23
 discard = 40 #number of intial paths to discard
+#discard = 50
 offset = discard/keep +1
 n_keep = int((paths-discard)/keep)
 #create arrays
@@ -34,11 +38,11 @@ def energy(x1, x2, a):
     energy = 0.5*(m*(x2-x1)/a)**2 + potential((x2+x1)/2)
     return energy
     
-def create_paths(x_array,T):
+def create_paths(x_array):
     """Uses the metropolis algorithm to make a Monte Carlo selection of paths 
     taking into account their weight"""
-    a = T/N 
-    eps = 1.75
+    eps = 1.4
+    #eps = 1.2
     for j in range(paths):
         x_array[-1] = x_array[0]
         if j>discard and j%keep == 0:
@@ -94,7 +98,7 @@ def groundstate_energy(all_paths):
         total[i] = add      
     average = sum(total)/(n_keep)
     theoretical = omega*0.5
-    return average
+    return total, average
     #print('calculated groundstate energy =', average)
     #print('theoretical groundstate energy =', theoretical) 
 
@@ -112,36 +116,16 @@ def uncertainty_calc(path_array):
     energies = []
     for i in range(50):
        sample = bootstrap(path_array)
-       energy = groundstate_energy(sample)
-       energies.append(energy)
+       energies.append(sample)
     mean = np.mean(energies)
     uncertainty = np.std(energies)
-    return mean, uncertainty
+    perc_error = ((0.5-mean)/0.5)*100
+    return mean, uncertainty, perc_error
     
-def vary_a_plots(x_array):
-    """varies the value of a and plots groundstate energy and its uncertainty 
-    against the different values of a, where a =T/N"""
-    energies = []
-    uncertainties = []
-    for T in range(1, 2*N+1, 1):
-        paths = create_paths(x_array,T)
-        values = uncertainty_calc(paths)
-        energies.append(values[0])
-        uncertainties.append(values[1])
-    T = np.arange(1, 2*N+1, 1)
-    a = T/N
-    f, (ax1, ax2) = pyplot.subplots(1, 2)
-    f.suptitle('Varying a')
-    ax1.plot(a, energies)
-    ax1.set_xlabel('a')
-    ax1.set_ylabel('Groundstate Energy')
-    ax2.set_xlabel('a')
-    ax2.set_ylabel('Standard Deviation')
-    ax2.plot(a, uncertainties)
-    pyplot.show()
+paths = create_paths(x_array)
+energy_array = groundstate_energy(paths)[0]
+print(uncertainty_calc(energy_array))    
 
-
-vary_a_plots(x_array)
 
 end = time.time()
 print("--- %s seconds ---" % (end - start))
