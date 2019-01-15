@@ -6,7 +6,7 @@ import time
 start = time.time()
 #set constants
 N = 200
-T = 75
+#T = 75
 a = 1.4
 m = 1 #mass is equal to 1
 omega = 1
@@ -38,11 +38,14 @@ def create_paths(x_array):
     """Uses the metropolis algorithm to make a Monte Carlo selection of paths 
     taking into account their weight"""
     eps = 1.2
+    accept = 0 
+    count = 0
     for j in range(paths):
         x_array[-1] = x_array[0]
         if j>discard and j%keep == 0:
             path_array[int((j/keep)-offset):] = x_array
         for i in range(0, (N-1), 1): 
+            count += 1
             x_new = np.copy(x_array)
             random_perturb = random.uniform(-eps, eps)
             random_number = random.uniform(0,1)
@@ -50,8 +53,10 @@ def create_paths(x_array):
             delta_energy = energy(x_array[i-1], x_new[i], a) + energy(x_new[i], x_array[i+1], a) - energy(x_array[i-1], x_array[i], a) - energy(x_array[i], x_array[i+1], a)
             if delta_energy < 0:
                 x_array[i] = x_new[i]
+                accept += 1
             elif random_number < np.exp(-a*delta_energy):
                 x_array[i] = x_new[i]
+                accept += 1
             else:
                 x_array[i] = x_array[i]
     all_paths = path_array
@@ -59,8 +64,9 @@ def create_paths(x_array):
     mean = np.mean(values)
     var = np.var(values)
     sigma = np.sqrt(var)
+    accept_rate = accept/count
     #print (mean, sigma, len(values))
-    return values, mean, sigma, all_paths
+    return values, mean, sigma, all_paths, accept_rate
     #return all_paths
     
 def quantum_method(x):
@@ -135,6 +141,7 @@ def plot_and_values(x_array):
 plot_and_values(x_array)
 all_paths = create_paths(x_array)[3]
 groundstate_energy(all_paths)
+print(np.arange(0,2))
 
 end = time.time()
 print("--- %s seconds ---" % (end - start))
