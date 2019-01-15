@@ -11,7 +11,7 @@ N = 60
 m = 1 #mass is equal to 1
 omega = 1
 #h-bar is taken as 1 throughout
-paths = 1000 #number of paths to run
+paths = 20000 #number of paths to run
 keep = 4 #frequency at which paths are stored
 discard = 40 #number of intial paths to discard
 offset = discard/keep +1
